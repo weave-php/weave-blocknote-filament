@@ -7,11 +7,6 @@ use InvalidArgumentException;
 
 class BlockNoteEditor extends Field
 {
-    /**
-     * BlockNote default block type keys (see BlockNote embeds / built-in blocks).
-     *
-     * @var list<string>
-     */
     public const BLOCK_TYPES = [
         'audio',
         'bulletListItem',
@@ -45,14 +40,8 @@ class BlockNoteEditor extends Field
 
     protected string $uploadResponseUrlKey = 'url';
 
-    /**
-     * @var list<string>|null
-     */
     protected ?array $blocks = null;
 
-    /**
-     * @var list<string>|null
-     */
     protected ?array $disabledBlocks = null;
 
     public function fullscreenButton(bool $enabled = true): static
@@ -79,10 +68,6 @@ class BlockNoteEditor extends Field
         return $this->minHeight;
     }
 
-    /**
-     * Force BlockNote UI language (e.g. `fr`, `en`, `zh-tw`). When omitted, the application locale is used.
-     * Prefer this over {@see locale()} if Filament adds its own `locale()` on fields in a future release.
-     */
     public function blockNoteLocale(?string $locale): static
     {
         $this->localeOverride = $locale;
@@ -90,9 +75,6 @@ class BlockNoteEditor extends Field
         return $this;
     }
 
-    /**
-     * @deprecated Use {@see blockNoteLocale()} for clarity.
-     */
     public function locale(?string $locale): static
     {
         return $this->blockNoteLocale($locale);
@@ -103,9 +85,6 @@ class BlockNoteEditor extends Field
         return $this->localeOverride;
     }
 
-    /**
-     * Disable BlockNote file uploads (no upload tab, no uploadFile handler).
-     */
     public function disableUpload(bool $disabled = true): static
     {
         $this->uploadEnabled = ! $disabled;
@@ -118,9 +97,6 @@ class BlockNoteEditor extends Field
         return $this->uploadEnabled;
     }
 
-    /**
-     * Override the upload endpoint (defaults to the package route `weave-blocknote.upload`).
-     */
     public function uploadUrl(?string $url): static
     {
         $this->uploadUrl = $url;
@@ -133,9 +109,6 @@ class BlockNoteEditor extends Field
         return $this->uploadUrl;
     }
 
-    /**
-     * URL passed to the editor: custom {@see uploadUrl()}, else the package route when uploads are enabled.
-     */
     public function getResolvedUploadUrl(): ?string
     {
         if (! $this->uploadEnabled) {
@@ -169,9 +142,6 @@ class BlockNoteEditor extends Field
         return $this->uploadFieldName;
     }
 
-    /**
-     * Dot path to the file URL in the JSON upload response (e.g. `url`, `data.url`, `location`).
-     */
     public function uploadResponseUrlKey(string $key): static
     {
         $this->uploadResponseUrlKey = $key;
@@ -184,11 +154,6 @@ class BlockNoteEditor extends Field
         return $this->uploadResponseUrlKey;
     }
 
-    /**
-     * Only these BlockNote block types (whitelist). Implies {@see withoutBlocks()} is ignored.
-     *
-     * @param  list<string>  $blocks
-     */
     public function blocks(array $blocks): static
     {
         $this->blocks = array_values(array_unique($blocks));
@@ -197,19 +162,11 @@ class BlockNoteEditor extends Field
         return $this;
     }
 
-    /**
-     * @return list<string>|null
-     */
     public function getBlocks(): ?array
     {
         return $this->blocks;
     }
 
-    /**
-     * Block types to remove from the default set (blacklist). Ignored if {@see blocks()} was set.
-     *
-     * @param  list<string>  $blocks
-     */
     public function withoutBlocks(array $blocks): static
     {
         $this->disabledBlocks = array_values(array_unique($blocks));
@@ -218,17 +175,11 @@ class BlockNoteEditor extends Field
         return $this;
     }
 
-    /**
-     * @return list<string>|null
-     */
     public function getDisabledBlocks(): ?array
     {
         return $this->disabledBlocks;
     }
 
-    /**
-     * @return list<string>
-     */
     public function getResolvedBlockKeys(): array
     {
         $known = array_flip(self::BLOCK_TYPES);

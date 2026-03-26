@@ -36,6 +36,6 @@ class BlockNoteServiceProvider extends PackageServiceProvider
         FilamentAsset::register([
             Css::make('blocknote-editor', __DIR__ . '/../dist/blocknote-editor.css'),
             Js::make('blocknote-editor', __DIR__ . '/../dist/blocknote-editor.js'),
-        ], 'weave-php/blocknote');
+        ], 'weave-php/blocknote-filament');
     }
 }

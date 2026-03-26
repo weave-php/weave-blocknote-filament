@@ -5,7 +5,7 @@
 
 @once
     @php
-        $package = 'weave-php/blocknote';
+        $package = 'weave-php/blocknote-filament';
     @endphp
     <link rel="stylesheet" href="{{ asset('fonts/filament/filament/inter/index.css') }}">
     <link rel="stylesheet" href="{{ \Filament\Support\Facades\FilamentAsset::getStyleHref('blocknote-editor', $package) }}">

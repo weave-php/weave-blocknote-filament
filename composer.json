@@ -1,7 +1,7 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "weave-php/blocknote-filament",
-    "description": "Filament BlockNote rich-text field for Laravel.",
+    "description": "Weave BlockNote rich-text editor as a Filament form field for Laravel.",
     "type": "library",
     "keywords": [
         "laravel",

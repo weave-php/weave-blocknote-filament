@@ -1,8 +1,5 @@
 import * as L from '@blocknote/core/locales';
 
-/**
- * Explicit locale map so tree-shaking / `in` checks never skip a dictionary (e.g. `fr`).
- */
 const byPrimaryLanguage: Record<string, typeof L.en> = {
     ar: L.ar,
     de: L.de,

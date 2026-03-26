@@ -4,11 +4,6 @@ namespace Weave\BlockNote\Support;
 
 final class BlockNoteDocument
 {
-    /**
-     * Extract a plain-text preview from a BlockNote JSON document string.
-     *
-     * @param  positive-int|0  $limit  Max characters; 0 means no limit.
-     */
     public static function toPlainText(?string $json, int $limit = 500): string
     {
         if ($json === null || $json === '') {
@@ -31,10 +26,6 @@ final class BlockNoteDocument
         return mb_substr($text, 0, $limit).'…';
     }
 
-    /**
-     * @param  list<mixed>|array<mixed>  $blocks
-     * @param  list<string>  $parts
-     */
     private static function collectText(array $blocks, array &$parts): void
     {
         foreach ($blocks as $block) {

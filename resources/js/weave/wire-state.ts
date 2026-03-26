@@ -1,4 +1,3 @@
-/** Parses Livewire JSON; returns valid top-level blocks only (typed `type`). Never returns []. */
 export function parseWireBlocks(raw: string | null | undefined): unknown[] | undefined {
     if (raw === undefined || raw === null || String(raw).trim() === '') {
         return undefined;

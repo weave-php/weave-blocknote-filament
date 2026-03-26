@@ -3,10 +3,6 @@ import type { BlockNoteEditor } from '@blocknote/core';
 import { parseWireBlocks } from './wire-state';
 import type { BlockNoteFieldProps } from './types';
 
-/**
- * Syncs Livewire JSON with the editor: persists BlockNote’s default when empty, hydrates saved blocks after mount.
- * Never uses initialContent in BlockNote.create (BlockNote treats [] as truthy and skips its default document).
- */
 export function useBlockNoteFieldModel(
     editor: BlockNoteEditor,
     { getState, setState, onReady }: Pick<BlockNoteFieldProps, 'getState' | 'setState' | 'onReady'>,
