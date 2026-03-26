@@ -15,6 +15,11 @@ class BlockNoteUploadController extends Controller
             abort(404);
         }
 
+        $authorize = config('weave-blocknote.uploads.authorize');
+        if (is_callable($authorize)) {
+            abort_unless((bool) $authorize($request), 403);
+        }
+
         $fieldName = config('weave-blocknote.uploads.input_name', 'file');
         $maxKb = (int) config('weave-blocknote.uploads.max_size_kb', 12_288);
 

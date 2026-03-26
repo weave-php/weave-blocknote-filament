@@ -35,9 +35,21 @@ return [
 
         /*
          * Middleware for the upload route (session + CSRF from "web").
-         * Adjust if your Filament panel uses another guard.
+         * Adjust if your Filament panel uses another guard (e.g. `auth:sanctum`).
          */
         'middleware' => ['web', 'auth'],
+
+        /*
+         * Laravel throttle string, e.g. `60,1` (60 requests per minute per user+IP).
+         * Set to null to disable rate limiting on this route.
+         */
+        'throttle' => env('WEAVE_BLOCKNOTE_UPLOADS_THROTTLE', '60,1'),
+
+        /*
+         * Optional authorization callback: return false to respond with 403.
+         * Example: fn (\Illuminate\Http\Request $request) => $request->user()?->can('upload', 'blocknote') ?? false
+         */
+        'authorize' => null,
 
         /*
          * JSON key returned to BlockNote (must match uploadResponseUrlKey() on the field if you change it).

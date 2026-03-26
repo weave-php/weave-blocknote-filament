@@ -1,16 +1,39 @@
-import * as blockNoteLocales from '@blocknote/core/locales';
+import * as L from '@blocknote/core/locales';
 
-export function resolveBlockNoteDictionary(locale: string): (typeof blockNoteLocales)['en'] {
+/**
+ * Explicit locale map so tree-shaking / `in` checks never skip a dictionary (e.g. `fr`).
+ */
+const byPrimaryLanguage: Record<string, typeof L.en> = {
+    ar: L.ar,
+    de: L.de,
+    en: L.en,
+    es: L.es,
+    fa: L.fa,
+    fr: L.fr,
+    he: L.he,
+    hr: L.hr,
+    is: L.is,
+    it: L.it,
+    ja: L.ja,
+    ko: L.ko,
+    nl: L.nl,
+    no: L.no,
+    pl: L.pl,
+    pt: L.pt,
+    ru: L.ru,
+    sk: L.sk,
+    uk: L.uk,
+    uz: L.uz,
+    vi: L.vi,
+    zh: L.zh,
+};
+
+export function resolveBlockNoteDictionary(locale: string): typeof L.en {
     const normalized = locale.replace(/_/g, '-').toLowerCase();
-    if (normalized === 'zh-tw') {
-        return blockNoteLocales.zhTW;
+    if (normalized === 'zh-tw' || normalized === 'zh-hk' || normalized === 'zh-mo') {
+        return L.zhTW;
     }
-    const primary = normalized.split('-')[0];
-    if (primary in blockNoteLocales) {
-        return blockNoteLocales[primary as keyof typeof blockNoteLocales];
-    }
-    if (locale in blockNoteLocales) {
-        return blockNoteLocales[locale as keyof typeof blockNoteLocales];
-    }
-    return blockNoteLocales.en;
+    const primary = normalized.split('-')[0] ?? 'en';
+
+    return byPrimaryLanguage[primary] ?? L.en;
 }

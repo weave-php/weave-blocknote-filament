@@ -6,7 +6,7 @@ A [BlockNote](https://www.blocknotejs.org/) rich-text editor as a **Filament for
 
 - PHP **8.3+**
 - Laravel **11+** (Illuminate components as required by your Filament version)
-- **Filament** v3, v4, or v5 (`filament/forms`)
+- **Filament** v3, v4, or v5 — the package requires **`filament/filament`** (panels, forms, tables, and infolists are pulled in as dependencies of that metapackage).
 
 ## Installation
 
@@ -63,7 +63,8 @@ Store the column as `longText` or `json` in your migration, depending on how you
 |--------|-------------|
 | `minHeight(int\|string $height)` | Minimum height of the editor area. Integers are treated as **pixels** (e.g. `480` → `480px`). Any CSS length is allowed (`'50vh'`, `'24rem'`, …). Default: `320px`. |
 | `fullscreenButton(bool $enabled = true)` | Shows a fullscreen toggle on the field. Default: **disabled**; call `fullscreenButton()` to enable. |
-| `locale(?string $locale)` | Optional override for the BlockNote UI dictionary (e.g. `fr`, `en`, `zh-tw`). If omitted, **`app()->getLocale()`** is used (Laravel-style codes like `fr_FR` are normalized). |
+| `blockNoteLocale(?string $locale)` | Preferred API: override the BlockNote UI dictionary (e.g. `fr`, `en`, `zh-tw`). If omitted, **`app()->getLocale()`** is used (Laravel-style codes like `fr_FR` are normalized). |
+| `locale(?string $locale)` | Deprecated alias of **`blockNoteLocale()`** (kept for readability; prefer **`blockNoteLocale()`** if Filament ever adds its own `locale()` on fields). |
 | `disableUpload(bool $disabled = true)` | Turns off uploads (BlockNote only shows embed). Default: **uploads on**. |
 | `uploadUrl(?string $url)` | Overrides the default upload endpoint (see below). By default the package registers **`POST /weave-blocknote/upload`** (`weave-blocknote.upload`). |
 | `uploadFieldName(string $name = 'file')` | Form field name for the uploaded file (must match `uploads.input_name` in config if you change it). |
@@ -83,7 +84,7 @@ Publish and edit config:
 php artisan vendor:publish --tag=weave-blocknote-config
 ```
 
-Key options: `uploads.disk` (default `public`; set `WEAVE_BLOCKNOTE_UPLOADS_DISK` only if you know what you’re doing), `uploads.directory`, `uploads.visibility`, `uploads.middleware`, `uploads.max_size_kb`, `uploads.enabled`.
+Key options: `uploads.disk` (default `public`), `uploads.directory`, `uploads.visibility`, `uploads.middleware`, **`uploads.throttle`** (e.g. `60,1` — set env `WEAVE_BLOCKNOTE_UPLOADS_THROTTLE` or `null` to disable), **`uploads.authorize`** (optional `callable (\Illuminate\Http\Request $request): bool` — register from `AppServiceProvider` with `config()->set('weave-blocknote.uploads.authorize', fn (...) => ...)`), `uploads.max_size_kb`, `uploads.enabled`.
 
 Override only the URL (e.g. custom controller):
 
@@ -141,7 +142,7 @@ BlockNoteEditor::make('minimal')
 
 ### Localization
 
-BlockNote UI strings follow **`locale()`** when set, otherwise **`app()->getLocale()`**:
+BlockNote UI strings follow **`blockNoteLocale()`** when set, otherwise **`app()->getLocale()`**:
 
 ```php
 BlockNoteEditor::make('body')->columnSpanFull();
@@ -150,7 +151,7 @@ BlockNoteEditor::make('body')->columnSpanFull();
 Force a specific BlockNote language regardless of the app:
 
 ```php
-BlockNoteEditor::make('body')->locale('fr');
+BlockNoteEditor::make('body')->blockNoteLocale('fr');
 ```
 
 Supported codes follow [BlockNote’s locale list](https://www.blocknotejs.org/docs/features/localization) (`ar`, `zh`, `zh-tw`, `en`, `fr`, …). Unknown codes fall back to English in the bundled script.
@@ -162,6 +163,65 @@ BlockNoteEditor::make('body')
     ->minHeight('400px')
     ->fullscreenButton(false);
 ```
+
+### Filament panel plugin (optional)
+
+Register the package explicitly on a panel if you want a stable hook for future panel-scoped options:
+
+```php
+use Filament\Panel;
+use Weave\BlockNote\Filament\BlockNotePlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugin(BlockNotePlugin::make());
+}
+```
+
+Assets are still loaded globally via the package service provider; the plugin is mainly for consistency with Filament’s plugin ecosystem.
+
+### Tables & infolist (read-only preview)
+
+Use **`BlockNoteColumn`** and **`BlockNoteEntry`** for a short plain-text preview of the stored JSON (not a full BlockNote render):
+
+```php
+use Weave\BlockNote\Tables\Columns\BlockNoteColumn;
+use Weave\BlockNote\Infolists\Components\BlockNoteEntry;
+
+// In a table definition
+BlockNoteColumn::make('contents')->label('Content preview');
+
+// In an infolist
+BlockNoteEntry::make('contents')->label('Content preview');
+```
+
+The helper **`Weave\BlockNote\Support\BlockNoteDocument::toPlainText(?string $json, int $limit = 500)`** powers these components; you can call it directly anywhere.
+
+### Validation
+
+Use **`Weave\BlockNote\Rules\BlockNoteDocumentRule`** to ensure the value is valid JSON and a non-empty array of blocks with a `type` key each:
+
+```php
+use Weave\BlockNote\Rules\BlockNoteDocumentRule;
+
+BlockNoteEditor::make('contents')
+    ->rules([new BlockNoteDocumentRule]);
+```
+
+### Livewire, SPA navigation, and `wire:ignore`
+
+The editor root uses **`wire:ignore`** so Livewire does not destroy the React mount. Avoid forcing full DOM replacements on the field’s subtree. With Filament’s SPA mode / `wire:navigate`, prefer full page loads for heavy form pages if you see a blank editor after navigation, or remount using the same patterns Filament documents for third-party scripts.
+
+### Security & uploads
+
+- Default route middleware is **`web`** + **`auth`** — adjust `uploads.middleware` in config (e.g. `auth:sanctum`) for your stack.
+- **`uploads.throttle`** adds Laravel’s `throttle` middleware (default `60,1`).
+- **`uploads.authorize`** is the right place for fine-grained checks (roles, quotas, tenant scoping).
+
+### Theming & UX
+
+BlockNote is rendered with **Mantine** inside the bundle; it will not automatically match Filament’s theme tokens or dark mode. Plan for a distinct visual block inside the form, or layer custom CSS on `.weave-blocknote-shell` if you need closer alignment.
 
 ## Data format
 

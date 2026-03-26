@@ -81,12 +81,21 @@ class BlockNoteEditor extends Field
 
     /**
      * Force BlockNote UI language (e.g. `fr`, `en`, `zh-tw`). When omitted, the application locale is used.
+     * Prefer this over {@see locale()} if Filament adds its own `locale()` on fields in a future release.
      */
-    public function locale(?string $locale): static
+    public function blockNoteLocale(?string $locale): static
     {
         $this->localeOverride = $locale;
 
         return $this;
+    }
+
+    /**
+     * @deprecated Use {@see blockNoteLocale()} for clarity.
+     */
+    public function locale(?string $locale): static
+    {
+        return $this->blockNoteLocale($locale);
     }
 
     public function getLocaleOverride(): ?string
