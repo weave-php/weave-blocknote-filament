@@ -4,7 +4,9 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/weave-php/blocknote-filament)](https://packagist.org/packages/weave-php/blocknote-filament)
 [![License](https://img.shields.io/packagist/l/weave-php/blocknote-filament)](https://packagist.org/packages/weave-php/blocknote-filament)
 
-Embed a [BlockNote](https://www.blocknotejs.org/) rich-text editor in Filament forms. The UI runs as a bundled **React** app (BlockNote + Mantine). Field state is a **JSON string** of BlockNote blocks.
+![BlockNote × Filament](docs/plugin-thumbnail.png)
+
+This package embeds the [BlockNote](https://www.blocknotejs.org/) rich-text editor in Filament forms, using a bundled **React** UI (BlockNote + Mantine), and persists document state as a **JSON string** of BlockNote blocks.
 
 **Composer package:** `weave-php/blocknote-filament` · **PHP namespace:** `Weave\BlockNote\...` (unchanged on purpose so imports stay stable).
 
@@ -39,6 +41,8 @@ public function panel(Panel $panel): Panel
 ```
 
 Assets are registered globally by the service provider; the plugin is mainly an explicit hook for panel configuration.
+
+![Filament plugin list — thumbnail (16:9)](docs/plugin-list-thumbnail.jpg)
 
 ### Publish Filament assets
 
