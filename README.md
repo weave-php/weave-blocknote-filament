@@ -63,8 +63,97 @@ Store the column as `longText` or `json` in your migration, depending on how you
 |--------|-------------|
 | `minHeight(int\|string $height)` | Minimum height of the editor area. Integers are treated as **pixels** (e.g. `480` → `480px`). Any CSS length is allowed (`'50vh'`, `'24rem'`, …). Default: `320px`. |
 | `fullscreenButton(bool $enabled = true)` | Shows a fullscreen toggle on the field. Default: **disabled**; call `fullscreenButton()` to enable. |
+| `locale(?string $locale)` | Optional override for the BlockNote UI dictionary (e.g. `fr`, `en`, `zh-tw`). If omitted, **`app()->getLocale()`** is used (Laravel-style codes like `fr_FR` are normalized). |
+| `disableUpload(bool $disabled = true)` | Turns off uploads (BlockNote only shows embed). Default: **uploads on**. |
+| `uploadUrl(?string $url)` | Overrides the default upload endpoint (see below). By default the package registers **`POST /weave-blocknote/upload`** (`weave-blocknote.upload`). |
+| `uploadFieldName(string $name = 'file')` | Form field name for the uploaded file (must match `uploads.input_name` in config if you change it). |
+| `uploadResponseUrlKey(string $key = 'url')` | JSON key for the public URL in the upload response (must match `uploads.response_url_key` in config if you change it). |
+| `blocks(array $types)` | **Whitelist**: only these BlockNote block types (see `BlockNoteEditor::BLOCK_TYPES`). `paragraph` is added if missing. |
+| `withoutBlocks(array $types)` | **Blacklist**: remove these types from the default set. Ignored if `blocks()` was used. `paragraph` cannot be removed. |
 
 All standard Filament `Field` APIs apply (`label()`, `required()`, `disabled()`, `columnSpanFull()`, `live()`, etc.).
+
+### File uploads (default)
+
+Uploads are **enabled by default**: the package registers **`POST /weave-blocknote/upload`** (name: `weave-blocknote.upload`) and stores files via `Weave\BlockNote\Contracts\StoresBlockNoteUploads` on the **`public` disk by default** (not your app’s `FILESYSTEM_DISK`, so image URLs stay under `/storage/...`). Run **`php artisan storage:link`** once so `public/storage` points at `storage/app/public`.
+
+Publish and edit config:
+
+```bash
+php artisan vendor:publish --tag=weave-blocknote-config
+```
+
+Key options: `uploads.disk` (default `public`; set `WEAVE_BLOCKNOTE_UPLOADS_DISK` only if you know what you’re doing), `uploads.directory`, `uploads.visibility`, `uploads.middleware`, `uploads.max_size_kb`, `uploads.enabled`.
+
+Override only the URL (e.g. custom controller):
+
+```php
+BlockNoteEditor::make('body')->uploadUrl(route('my.upload'));
+```
+
+Disable uploads entirely:
+
+```php
+BlockNoteEditor::make('body')->disableUpload();
+```
+
+### Custom storage (S3, CDN, etc.)
+
+Bind your own implementation; return a **public URL** string for BlockNote:
+
+```php
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Weave\BlockNote\Contracts\StoresBlockNoteUploads;
+
+class MyBlockNoteUploads implements StoresBlockNoteUploads
+{
+    public function store(UploadedFile $file): string
+    {
+        $path = Storage::disk('s3')->putFile('blocknote', $file, 'public');
+
+        return Storage::disk('s3')->url($path);
+    }
+}
+
+// AppServiceProvider::register()
+$this->app->singleton(
+    \Weave\BlockNote\Contracts\StoresBlockNoteUploads::class,
+    \App\BlockNote\MyBlockNoteUploads::class,
+);
+```
+
+The bundled script sends **`Accept: application/json`**, **`credentials: 'same-origin'`**, and Laravel **CSRF** when present.
+
+### Block types (enable / disable)
+
+Default is **all** built-in BlockNote blocks (`BlockNoteEditor::BLOCK_TYPES`). Restrict embeds or heavy blocks:
+
+```php
+use Weave\BlockNote\Forms\Components\BlockNoteEditor;
+
+BlockNoteEditor::make('body')
+    ->withoutBlocks(['table', 'codeBlock', 'image', 'video', 'audio', 'file']);
+
+BlockNoteEditor::make('minimal')
+    ->blocks(['paragraph', 'heading', 'bulletListItem', 'numberedListItem']);
+```
+
+### Localization
+
+BlockNote UI strings follow **`locale()`** when set, otherwise **`app()->getLocale()`**:
+
+```php
+BlockNoteEditor::make('body')->columnSpanFull();
+```
+
+Force a specific BlockNote language regardless of the app:
+
+```php
+BlockNoteEditor::make('body')->locale('fr');
+```
+
+Supported codes follow [BlockNote’s locale list](https://www.blocknotejs.org/docs/features/localization) (`ar`, `zh`, `zh-tw`, `en`, `fr`, …). Unknown codes fall back to English in the bundled script.
 
 ### Example: disable fullscreen
 

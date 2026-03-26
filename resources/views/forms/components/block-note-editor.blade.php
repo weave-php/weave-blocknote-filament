@@ -14,10 +14,43 @@
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
     <div
+        data-weave-upload-url="{{ $field->getResolvedUploadUrl() ?? '' }}"
+        data-weave-upload-field-name="{{ $field->getUploadFieldName() }}"
+        data-weave-upload-response-key="{{ $field->getUploadResponseUrlKey() }}"
+        data-weave-blocks='@json($field->getResolvedBlockKeys())'
         x-data="{
             state: $wire.$entangle('{{ $statePath }}'),
             editor: null,
             isFullscreen: false,
+            minHeight: '{{ $getMinHeight() }}',
+            mountBlockNote() {
+                if (!window.WeaveBlockNote) {
+                    return;
+                }
+                let blockKeys;
+                try {
+                    const raw = this.$el.dataset.weaveBlocks;
+                    blockKeys = raw ? JSON.parse(raw) : undefined;
+                } catch (e) {
+                    console.error(e);
+                    blockKeys = undefined;
+                }
+                window.WeaveBlockNote.mount(this.$refs.editor, {
+                    minHeight: this.minHeight,
+                    locale: '{{ $field->getResolvedLocale() }}',
+                    uploadUrl: this.$el.dataset.weaveUploadUrl || undefined,
+                    uploadFieldName: this.$el.dataset.weaveUploadFieldName || 'file',
+                    uploadResponseUrlKey: this.$el.dataset.weaveUploadResponseUrlKey || 'url',
+                    blockKeys: blockKeys,
+                    getState: () => this.state,
+                    setState: (value) => {
+                        this.state = value;
+                    },
+                    onReady: (editor) => {
+                        this.editor = editor;
+                    },
+                });
+            },
             async toggleFullscreen() {
                 const el = this.$refs.fullscreenShell;
                 if (!el) {
@@ -39,32 +72,22 @@
                     console.error(e);
                 }
             },
+            init() {
+                document.addEventListener('fullscreenchange', () => {
+                    this.isFullscreen = document.fullscreenElement === this.$refs.fullscreenShell;
+                });
+                document.addEventListener('webkitfullscreenchange', () => {
+                    this.isFullscreen = document.fullscreenElement === this.$refs.fullscreenShell;
+                });
+                this.$nextTick(() => {
+                    this.isFullscreen = document.fullscreenElement === this.$refs.fullscreenShell;
+                });
+                if (!window.WeaveBlockNote) {
+                    return;
+                }
+                this.mountBlockNote();
+            },
         }"
-        x-init="
-            document.addEventListener('fullscreenchange', () => {
-                isFullscreen = document.fullscreenElement === $refs.fullscreenShell;
-            });
-            document.addEventListener('webkitfullscreenchange', () => {
-                isFullscreen = document.fullscreenElement === $refs.fullscreenShell;
-            });
-            $nextTick(() => {
-                isFullscreen = document.fullscreenElement === $refs.fullscreenShell;
-            });
-            if (!window.WeaveBlockNote) {
-                return;
-            }
-
-            window.WeaveBlockNote.mount($refs.editor, {
-                minHeight: '{{ $getMinHeight() }}',
-                getState: () => this.state,
-                setState: (value) => {
-                    this.state = value;
-                },
-                onReady: (editor) => {
-                    this.editor = editor;
-                },
-            });
-        "
     >
         <input type="hidden" x-model="state" wire:model="{{ $statePath }}" />
 
