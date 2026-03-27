@@ -1,11 +1,13 @@
 import React, { useMemo } from 'react';
-import { useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteContext, useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import type { BlockNoteFieldProps } from './types';
+import { filamentBlockNoteTheme } from './filamentBlockNoteTheme';
 import { resolveBlockNoteDictionary } from './locale';
 import { createSchemaFromBlockKeys, parseBlockKeysJson } from './schema';
 import { createLaravelUploadHandler } from './upload';
 import { useBlockNoteFieldModel } from './useBlockNoteFieldModel';
+import { useFilamentBlockNoteColorScheme } from './useFilamentBlockNoteColorScheme';
 import '@blocknote/mantine/style.css';
 import '../../css/blocknote-shell.css';
 
@@ -52,6 +54,8 @@ export function BlockNoteField({
 
     useBlockNoteFieldModel(editor, { getState, setState, onReady });
 
+    const colorSchemePreference = useFilamentBlockNoteColorScheme();
+
     const shellStyle: React.CSSProperties = {
         display: 'flex',
         flexDirection: 'column',
@@ -60,12 +64,22 @@ export function BlockNoteField({
         ...(minHeight ? { minHeight } : {}),
     };
 
+    const blockNoteContextValue = useMemo(
+        () => ({ colorSchemePreference }),
+        [colorSchemePreference],
+    );
+
     return (
-        <div className="weave-blocknote-shell" style={shellStyle}>
-            <BlockNoteView
-                editor={editor}
-                onChange={() => setState(JSON.stringify(editor.document ?? []))}
-            />
-        </div>
+        <BlockNoteContext.Provider value={blockNoteContextValue}>
+            <div className="weave-blocknote-shell" style={shellStyle}>
+                <BlockNoteView
+                    editor={editor}
+                    theme={filamentBlockNoteTheme}
+                    onChange={() =>
+                        setState(JSON.stringify(editor.document ?? []))
+                    }
+                />
+            </div>
+        </BlockNoteContext.Provider>
     );
 }
