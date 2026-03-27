@@ -1,6 +1,8 @@
 /vendor
 /node_modules
 
+/.pillow-tmp
+
 /.env
 /.env.*
 !.env.example
